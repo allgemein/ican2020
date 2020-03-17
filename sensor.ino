@@ -66,7 +66,24 @@ void MMA8452_WriteByte(byte adrs, byte dat)
 
 vec3 getHeadAcclerelation() {
   /*頭の加速度*/
-  
+  MatchState ms;
+  if (Serial1.available()) {
+    String inData = Serial1.readStringUntil('\r\n');
+    ms.Target(const_cast<char*>(inData.c_str()));
+    if (ms.Match("::rc=")) {
+      ms.Target(const_cast<char*>(inData.c_str()));
+      if (!ms.Match("x=*%d+") > 0)ms.Match("x=*-%d+");
+      int x = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+      ms.Target(const_cast<char*>(inData.c_str()));
+      if (!ms.Match("y=*%d+") > 0)ms.Match("y=*-%d+");
+      int y = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+      ms.Target(const_cast<char*>(inData.c_str()));
+      if (!ms.Match("z=*%d+") > 0)ms.Match("z=*-%d+");
+      int z = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+      vec3 output = {x, y, z};
+      return output;
+    }
+  }
 }
 
 vec3 getWristAcclerelation() {

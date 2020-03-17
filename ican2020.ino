@@ -3,6 +3,7 @@
    QSHP制御コード
 */
 #include <Wire.h>
+#include <Regexp.h>
 #include <SSD1306.h>
 #if defined ( ESP32 )
 HardwareSerial  GpsSerial( 2 );
@@ -27,25 +28,29 @@ typedef struct {
 
 void setup() {
   display.init();
+  display.setFont(ArialMT_Plain_24);
+  display.drawString(15,15, "QSHP!");
+  display.display();
   display.setFont(ArialMT_Plain_16);
-  accelInit();
-  printDisplay("Initializing...");
+  //accelInit();
   Serial.begin(115200);
   Serial1.begin(115200);
   pinMode(13, OUTPUT);
+  while(!Serial1)delay(200);
   digitalWrite(13, HIGH);
   delay(1000);
-  printDisplay("Initialized!");
-  display.clear();
 }
 
 void loop() {
   float temp;
   vec3 headAccel, wristAccel;
-  
+
   /*センサの値を取得*/
   temp = getTemp();
+  Serial.println(temp);
+  printDisplay(String(temp));
+  //printDisplay(String(temp));
   headAccel = getHeadAcclerelation();
-  wristAccel = getWristAcclerelation();
-  
+  //wristAccel = getWristAcclerelation();
+  delay(500);
 }
