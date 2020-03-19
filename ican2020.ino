@@ -26,17 +26,21 @@ typedef struct {
   float z;
 } vec3;
 
+int fontHeight = 15;
+float pulse; //心拍数
+
 void setup() {
   display.init();
   display.setFont(ArialMT_Plain_24);
-  display.drawString(15,15, "QSHP!");
+  display.drawString(15, 15, "QSHP!");
   display.display();
   display.setFont(ArialMT_Plain_16);
-  //accelInit();
+  accelInit();
   Serial.begin(115200);
   Serial1.begin(115200);
   pinMode(13, OUTPUT);
-  while(!Serial1)delay(200);
+  pinMode(A0, OUTPUT);
+  while (!Serial1)delay(200);
   digitalWrite(13, HIGH);
   delay(1000);
 }
@@ -44,13 +48,37 @@ void setup() {
 void loop() {
   float temp;
   vec3 headAccel, wristAccel;
-
-  /*センサの値を取得*/
-  temp = getTemp();
-  Serial.println(temp);
-  printDisplay(String(temp));
-  //printDisplay(String(temp));
-  headAccel = getHeadAcclerelation();
-  //wristAccel = getWristAcclerelation();
-  delay(500);
+  if (Serial1.available()) {
+    /*センサの値を取得*/
+    headAccel = getHeadAcclerelation();
+    vec3 None = { -1, -1, -1};
+    if (headAccel.x != None.x && headAccel.y != None.y && headAccel.z != None.z) {
+      temp = getTemp();
+      wristAccel = getWristAcclerelation();
+      if (isNeochi(headAccel, wristAccel, temp, pulse)) {
+        /*寝る落ちしてるか?*/
+        vaible();//バイブレーション
+      }
+      //ここからディスプレイ表示用
+      display.clear();
+      String Show = "Temp:";
+      Show.concat(String(temp));
+      display.drawString(0, fontHeight * 0, Show);
+      String Output = "Head:";
+      Output.concat(String((int)headAccel.x));
+      Output.concat(",");
+      Output.concat(String((int)headAccel.y));
+      Output.concat(",");
+      Output.concat(String((int)headAccel.z));
+      display.drawString(0, fontHeight * 1, Output);
+      String Output2 = "";
+      Output2.concat(String(wristAccel.x));
+      Output2.concat(",");
+      Output2.concat(String(wristAccel.y));
+      Output2.concat(",");
+      Output2.concat(String(wristAccel.z));
+      display.drawString(0, fontHeight * 2, Output2);
+      display.display();
+    }
+  }
 }

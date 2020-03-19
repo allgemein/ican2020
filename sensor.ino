@@ -67,23 +67,28 @@ void MMA8452_WriteByte(byte adrs, byte dat)
 vec3 getHeadAcclerelation() {
   /*頭の加速度*/
   MatchState ms;
-  if (Serial1.available()) {
-    String inData = Serial1.readStringUntil('\r\n');
+  vec3 output;
+  String inData = Serial1.readStringUntil('\r\n');
+  ms.Target(const_cast<char*>(inData.c_str()));
+  if (ms.Match("::rc=")) {
+    bool flag = true;
     ms.Target(const_cast<char*>(inData.c_str()));
-    if (ms.Match("::rc=")) {
-      ms.Target(const_cast<char*>(inData.c_str()));
-      if (!ms.Match("x=*%d+") > 0)ms.Match("x=*-%d+");
-      int x = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
-      ms.Target(const_cast<char*>(inData.c_str()));
-      if (!ms.Match("y=*%d+") > 0)ms.Match("y=*-%d+");
-      int y = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
-      ms.Target(const_cast<char*>(inData.c_str()));
-      if (!ms.Match("z=*%d+") > 0)ms.Match("z=*-%d+");
-      int z = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
-      vec3 output = {x, y, z};
-      return output;
-    }
+    if (!ms.Match("x=*%d+") > 0)ms.Match("x=*-%d+");
+    if (!ms.Match("x=*%d+") && !ms.Match("x=*-%d+"))flag = false;
+    int x = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+    ms.Target(const_cast<char*>(inData.c_str()));
+    if (!ms.Match("y=*%d+") > 0)ms.Match("y=*-%d+");
+    if (!ms.Match("y=*%d+") && !ms.Match("y=*-%d+"))flag = false;
+    int y = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+    ms.Target(const_cast<char*>(inData.c_str()));
+    if (!ms.Match("z=*%d+") > 0)ms.Match("z=*-%d+");
+    if (!ms.Match("z=*%d+") && !ms.Match("z=*-%d+"))flag = false;
+    int z = (inData.substring(ms.MatchStart + 2, ms.MatchStart + ms.MatchLength)).toInt();
+    output = {x, y, z};
+    if (flag)return output;
   }
+  vec3 None = { -1, -1, -1};
+  return None;
 }
 
 vec3 getWristAcclerelation() {
@@ -99,5 +104,10 @@ vec3 getWristAcclerelation() {
                MMA8452_G_SCALE));
   output.z = -(float((int((buf[4] << 8) | buf[5]) >> 4)) / ((1 << 11) /
                MMA8452_G_SCALE));
+  Serial.print(output.x);
+  Serial.print(",");
+  Serial.print(output.y);
+  Serial.print(",");
+  Serial.println(output.z);
   return output;
 }
