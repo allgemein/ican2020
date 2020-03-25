@@ -1,5 +1,5 @@
 void vaible(){
-  digitalWrite(A3,HIGH);
+  digitalWrite(A0,HIGH);
   delay(1000);
-  digitalWrite(A3,LOW);
+  digitalWrite(A0,LOW);
 }

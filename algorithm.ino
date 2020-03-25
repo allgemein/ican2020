@@ -3,5 +3,5 @@
 */
 
 bool isNeochi(vec3 head, vec3 wrist, float temp, float pulse) {
-
+	return false;
 }
