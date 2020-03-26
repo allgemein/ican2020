@@ -5,6 +5,8 @@
 #include <Wire.h>
 #include <Regexp.h>
 #include <SSD1306.h>
+#include <BluetoothSerial.h>
+
 #if defined ( ESP32 )
 HardwareSerial  GpsSerial( 2 );
 #else
@@ -18,7 +20,11 @@ HardwareSerial  GpsSerial( 2 );
 #define MMA8452_CTRL_REG1_ACTV_BIT 0x01
 #define MMA8452_G_SCALE 2
 
+BluetoothSerial bt;
 SSD1306  display(0x3c, 23, 22);
+
+long long  headAccelSum[3]={0,0,0};
+unsigned long long counter=0;
 
 typedef struct {
   float x;
@@ -26,6 +32,8 @@ typedef struct {
   float z;
 } vec3;
 
+const float k = 0.9;
+const float threshold = 100; 
 int fontHeight = 15;
 float pulse; //心拍数
 
@@ -36,6 +44,7 @@ void setup() {
   display.display();
   display.setFont(ArialMT_Plain_16);
   accelInit();
+  bt.begin("QSHP");
   Serial.begin(115200);
   Serial1.begin(115200);
   pinMode(13, OUTPUT);
@@ -43,21 +52,25 @@ void setup() {
   while (!Serial1)delay(200);
   digitalWrite(13, HIGH);
   delay(1000);
+  digitalWrite(13,LOW);
 }
 
 void loop() {
   float temp;
+  vec3 None = { -1, -1, -1};
   vec3 headAccel, wristAccel;
+  static vec3 previousHeadAccel;
   if (Serial1.available()) {
-    /*センサの値を取得*/
-    headAccel = getHeadAcclerelation();
-    vec3 None = { -1, -1, -1};
-    if (headAccel.x != None.x && headAccel.y != None.y && headAccel.z != None.z) {
-      temp = getTemp();
-      wristAccel = getWristAcclerelation();
-      if (isNeochi(headAccel, wristAccel, temp, pulse)) {
-        /*寝る落ちしてるか?*/
+	  /*センサの値を取得*/
+	  if  (headAccel.x != None.x && headAccel.y != None.y && headAccel.z != None.z) {
+		  headAccel = lowPassFilter(previousHeadAccel,getHeadAcclerelation());
+		  previousHeadAccel = headAccel;
+		  temp = getTemp();
+		  wristAccel = getWristAcclerelation();
+		  if (isNeochi(headAccel, wristAccel, temp, pulse)) {
+         /*寝る落ちしてるか?*/
         vaible();//バイブレーション
+		bt.println("neochi");
       }
       //ここからディスプレイ表示用
       display.clear();
