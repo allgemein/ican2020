@@ -98,16 +98,12 @@ vec3 getWristAcclerelation() {
   // MMA8452の内部レジスタにある測定値を読み込みます。
   // X: g[0], Y: g[1], Z: g[2] に対応します。
   MMA8452_ReadByteArray(MMA8452_OUT_X_MSB, 6, buf);
-  output.x = -(float((int((buf[0] << 8) | buf[1]) >> 4)) / ((1 << 11) /
+  output.x = (float((short((buf[0] << 8) | buf[1]) >> 4)) / (float(1 << 11) *
                MMA8452_G_SCALE));
-  output.y = -(float((int((buf[2] << 8) | buf[3]) >> 4)) / ((1 << 11) /
+  output.y = (float((short((buf[2] << 8) | buf[3]) >> 4)) / (float(1 << 11) *
                MMA8452_G_SCALE));
-  output.z = -(float((int((buf[4] << 8) | buf[5]) >> 4)) / ((1 << 11) /
-               MMA8452_G_SCALE));
-  Serial.print(output.x);
-  Serial.print(",");
-  Serial.print(output.y);
-  Serial.print(",");
-  Serial.println(output.z);
+  //output.z = (float((short((buf[4] << 8) | buf[5]) >> 4)) / (float(1 << 11) *
+  //             MMA8452_G_SCALE));
+  output.z = (short((buf[4] << 8) | buf[5]) >> 4); 
   return output;
 }
