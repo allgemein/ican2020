@@ -123,7 +123,7 @@ void loop() {
 			display.drawString(0, fontHeight * 2, Output2);
 			display.display();
 		}
-		printVec3(wristAccel.getResult());
-		printVec3ln(wristAccel.getData());
 	}
+	printVec3(wristAccel.getResult());
+	printVec3ln(wristAccel.getData());
 }
